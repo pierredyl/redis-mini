@@ -24,6 +24,7 @@ func HandleResp(conn net.Conn) ([]string, error) {
 		args, err = ParseArray(reader, args)
 		if err != nil {
 			fmt.Println("error: failed ParseArray", err)
+			return nil, err
 		}
 	}
 
