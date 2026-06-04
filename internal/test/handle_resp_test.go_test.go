@@ -2,6 +2,7 @@ package test
 
 import (
 	"net"
+	"redis-mini/internal/handlers"
 	"reflect"
 	"testing"
 	"time"
@@ -123,7 +124,7 @@ func TestHandleResp(t *testing.T) {
 			// deadline a broken parser would stall the whole test run.
 			_ = conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 
-			got, err := HandleResp(conn)
+			got, err := handlers.HandleResp(conn)
 
 			if tt.wantErr {
 				if err == nil {
