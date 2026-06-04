@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net"
+	"redis-mini/internal/data"
 	"redis-mini/internal/handlers"
 )
 
@@ -16,6 +17,9 @@ func main() {
 	}
 	log.Println("listening on :8080")
 
+	// Make the database
+	data := data.NewStore()
+
 	// Accepting connections and sending to its each goroutine
 	for {
 		conn, err := ln.Accept()
@@ -24,7 +28,7 @@ func main() {
 			return
 		}
 		log.Println("accepted connection from", conn.RemoteAddr())
-		go handlers.HandleConnection(conn)
+		go handlers.HandleConnection(conn, data)
 
 	}
 }

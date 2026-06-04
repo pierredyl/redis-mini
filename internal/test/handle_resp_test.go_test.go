@@ -1,4 +1,4 @@
-package handlers
+package test
 
 import (
 	"net"
@@ -84,10 +84,6 @@ func TestHandleResp(t *testing.T) {
 			payload: "*3\r\n$3\r\nSET\r\n$4\r\nnote\r\n$24\r\nbuy milk, eggs, & bread!\r\n",
 			want:    []string{"SET", "note", "buy milk, eggs, & bread!"},
 		},
-
-		// --- Malformed input: every one of these should return an error,
-		// not a partial slice and not a panic. ---
-
 		{
 			name:    "non-numeric array length",
 			payload: "*abc\r\n",
