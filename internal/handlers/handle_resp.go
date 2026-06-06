@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"net"
@@ -10,6 +11,7 @@ import (
 )
 
 func HandleResp(conn net.Conn) ([]string, error) {
+	var buffer bytes.Buffer
 	var args []string
 	reader := bufio.NewReader(conn)
 
@@ -19,14 +21,20 @@ func HandleResp(conn net.Conn) ([]string, error) {
 		return nil, err
 	}
 
+	// Append typeByte to the buffer
+	buffer.WriteByte(typeByte)
+
 	// If the type is an array
 	if typeByte == '*' {
-		args, err = ParseArray(reader, args)
+		args, err = ParseArray(reader, &buffer, args)
 		if err != nil {
 			fmt.Println("error: failed ParseArray", err)
 			return nil, err
 		}
 	}
+
+	// Print the buffer
+	fmt.Println("buffer contents:", buffer)
 
 	return args, nil
 }
@@ -42,7 +50,7 @@ func readLine(reader *bufio.Reader) (string, error) {
 
 }
 
-func ParseArray(reader *bufio.Reader, args []string) ([]string, error) {
+func ParseArray(reader *bufio.Reader, buffer *bytes.Buffer, args []string) ([]string, error) {
 	lengthStr, err := readLine(reader)
 	if err != nil {
 		fmt.Println("Failed to read array length", err)
@@ -53,6 +61,8 @@ func ParseArray(reader *bufio.Reader, args []string) ([]string, error) {
 		fmt.Println("Could not convert string to integer", err)
 		return nil, err
 	}
+
+	buffer.Write([]byte(lengthStr))
 
 	for i := 0; i < int(length); i++ {
 		if err != nil {
@@ -68,7 +78,8 @@ func ParseArray(reader *bufio.Reader, args []string) ([]string, error) {
 
 		// Bulk string
 		if nextByte == '$' {
-			args, err = ParseBulkString(reader, args)
+			buffer.WriteByte(nextByte)
+			args, err = ParseBulkString(reader, buffer, args)
 			if err != nil {
 				fmt.Println("Failed to parse bulk string", err)
 				return nil, err
@@ -79,7 +90,7 @@ func ParseArray(reader *bufio.Reader, args []string) ([]string, error) {
 	return args, nil
 }
 
-func ParseBulkString(reader *bufio.Reader, args []string) ([]string, error) {
+func ParseBulkString(reader *bufio.Reader, buffer *bytes.Buffer, args []string) ([]string, error) {
 	bulkStringLengthStr, err := readLine(reader)
 	if err != nil {
 		fmt.Println("Failed to get bulk string length", err)
@@ -92,6 +103,8 @@ func ParseBulkString(reader *bufio.Reader, args []string) ([]string, error) {
 		return nil, err
 	}
 
+	buffer.Write([]byte(bulkStringLengthStr))
+
 	var bulkString []byte = make([]byte, bulkStringLength)
 
 	_, err = io.ReadFull(reader, bulkString)
@@ -99,6 +112,8 @@ func ParseBulkString(reader *bufio.Reader, args []string) ([]string, error) {
 		fmt.Println("Error reading bulk string", err)
 		return nil, err
 	}
+
+	buffer.Write(bulkString)
 
 	// Discard the escape bytes \r\n
 	_, err = reader.Discard(2)

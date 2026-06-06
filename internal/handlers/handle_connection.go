@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"redis-mini/internal/data"
@@ -21,7 +22,11 @@ func HandleConnection(conn net.Conn, data *data.Store) (err error) {
 
 	switch operation {
 	case "set":
-		HandleSet(args, data)
+		err := HandleSet(args, data)
+		if err != nil {
+			return errors.New("Set failed")
+		}
+		// Use Buffer to write to AOF
 	case "get":
 		value := HandleGet(args, data)
 		fmt.Println("Got:", value)
