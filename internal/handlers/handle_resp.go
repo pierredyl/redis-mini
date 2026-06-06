@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func HandleResp(conn net.Conn) ([]string, error) {
+func HandleResp(conn net.Conn) ([]string, *bytes.Buffer, error) {
 	var buffer bytes.Buffer
 	var args []string
 	reader := bufio.NewReader(conn)
@@ -18,7 +18,7 @@ func HandleResp(conn net.Conn) ([]string, error) {
 	// The very first byte in RESP indicates type
 	typeByte, err := reader.ReadByte()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Append typeByte to the buffer
@@ -29,14 +29,16 @@ func HandleResp(conn net.Conn) ([]string, error) {
 		args, err = ParseArray(reader, &buffer, args)
 		if err != nil {
 			fmt.Println("error: failed ParseArray", err)
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	// Print the buffer
 	fmt.Println("buffer contents:", buffer)
+	// Print as a direct string
+	fmt.Println("buffer as string:", buffer.String())
 
-	return args, nil
+	return args, &buffer, nil
 }
 
 func readLine(reader *bufio.Reader) (string, error) {
@@ -63,13 +65,9 @@ func ParseArray(reader *bufio.Reader, buffer *bytes.Buffer, args []string) ([]st
 	}
 
 	buffer.Write([]byte(lengthStr))
+	buffer.Write([]byte("\r\n"))
 
 	for i := 0; i < int(length); i++ {
-		if err != nil {
-			fmt.Println("Error:", err)
-			return nil, err
-		}
-
 		nextByte, err := reader.ReadByte()
 		if err != nil {
 			fmt.Println("Error:", err)
@@ -104,6 +102,7 @@ func ParseBulkString(reader *bufio.Reader, buffer *bytes.Buffer, args []string) 
 	}
 
 	buffer.Write([]byte(bulkStringLengthStr))
+	buffer.Write([]byte("\r\n"))
 
 	var bulkString []byte = make([]byte, bulkStringLength)
 
@@ -114,6 +113,7 @@ func ParseBulkString(reader *bufio.Reader, buffer *bytes.Buffer, args []string) 
 	}
 
 	buffer.Write(bulkString)
+	buffer.Write([]byte("\r\n"))
 
 	// Discard the escape bytes \r\n
 	_, err = reader.Discard(2)
