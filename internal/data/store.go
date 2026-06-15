@@ -1,7 +1,7 @@
 package data
 
 import (
-	"log"
+	"errors"
 	"sync"
 )
 
@@ -29,11 +29,13 @@ func (s *Store) Get(key string) (interface{}, bool) {
 	return val, exists
 }
 
-func (s *Store) Delete(key string) {
+func (s *Store) Delete(key string) (err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if _, exists := s.data[key]; !exists {
-		log.Fatal("Key not found")
+		return errors.New("Key not found")
 	}
 	delete(s.data, key)
+
+	return nil
 }
