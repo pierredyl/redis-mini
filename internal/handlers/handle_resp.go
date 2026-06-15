@@ -5,15 +5,13 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"net"
 	"strconv"
 	"strings"
 )
 
-func HandleResp(conn net.Conn) ([]string, *bytes.Buffer, error) {
+func HandleResp(reader *bufio.Reader) ([]string, *bytes.Buffer, error) {
 	var buffer bytes.Buffer
 	var args []string
-	reader := bufio.NewReader(conn)
 
 	// The very first byte in RESP indicates type
 	typeByte, err := reader.ReadByte()
@@ -31,12 +29,17 @@ func HandleResp(conn net.Conn) ([]string, *bytes.Buffer, error) {
 			fmt.Println("error: failed ParseArray", err)
 			return nil, nil, err
 		}
+	} else {
+		// Dealing with an inline command. That means typeByte is a part
+		// of the command. So get the rest of the command, and combine them
+		command_remains, err := readLine(reader)
+		if err != nil {
+			return nil, nil, err
+		}
+		command := string(typeByte) + command_remains
+		args = strings.Split(command, " ")
+		fmt.Println(args)
 	}
-
-	// Print the buffer
-	//fmt.Println("buffer contents:", buffer)
-	// Print as a direct string
-	//fmt.Println("buffer as string:", buffer.String())
 
 	return args, &buffer, nil
 }
