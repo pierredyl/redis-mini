@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"redis-mini/internal/data"
@@ -8,7 +9,14 @@ import (
 )
 
 func main() {
-	// Create concurrent TCP servers
+	// Make the database
+	data := data.NewStore()
+
+	// Load data from AOF file
+	err := handlers.HandleAOFRead(data)
+	if err != nil {
+		fmt.Println("Couldn't read AOF file")
+	}
 
 	// Start a TCP server
 	ln, err := net.Listen("tcp", ":8080")
@@ -16,17 +24,6 @@ func main() {
 		log.Fatal("Failed to start the TCP server.")
 	}
 	log.Println("listening on :8080")
-
-	// Make the database
-	data := data.NewStore()
-
-	// Load data from AOF file
-	/*
-		err = handlers.HandleAOFRead()
-		if err != nil {
-			fmt.Println("Couldn't read AOF file")
-		}
-	*/
 
 	// Accepting connections and sending to its each goroutine
 	for {
