@@ -124,7 +124,7 @@ func TestHandleResp(t *testing.T) {
 			// deadline a broken parser would stall the whole test run.
 			_ = conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 
-			got, err := handlers.HandleResp(conn)
+			got, _, err := handlers.HandleResp(conn)
 
 			if tt.wantErr {
 				if err == nil {

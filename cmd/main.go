@@ -20,6 +20,14 @@ func main() {
 	// Make the database
 	data := data.NewStore()
 
+	// Load data from AOF file
+	/*
+		err = handlers.HandleAOFRead()
+		if err != nil {
+			fmt.Println("Couldn't read AOF file")
+		}
+	*/
+
 	// Accepting connections and sending to its each goroutine
 	for {
 		conn, err := ln.Accept()

@@ -34,9 +34,9 @@ func HandleResp(conn net.Conn) ([]string, *bytes.Buffer, error) {
 	}
 
 	// Print the buffer
-	fmt.Println("buffer contents:", buffer)
+	//fmt.Println("buffer contents:", buffer)
 	// Print as a direct string
-	fmt.Println("buffer as string:", buffer.String())
+	//fmt.Println("buffer as string:", buffer.String())
 
 	return args, &buffer, nil
 }
