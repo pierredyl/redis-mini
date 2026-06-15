@@ -60,6 +60,8 @@ func HandleConnection(conn net.Conn, data *data.Store) (err error) {
 			// Currently, not supporting any special commands
 			conn.Write([]byte("*0\r\n"))
 
+		default:
+			conn.Write([]byte("-ERR unknown command\r\n"))
 		}
 	}
 }
