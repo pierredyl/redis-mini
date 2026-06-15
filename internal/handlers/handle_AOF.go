@@ -13,7 +13,7 @@ import (
 func HandleAOFWrite(buffer *bytes.Buffer) (err error) {
 	// Open file
 	file, err := os.OpenFile("database.aof", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
-	if err != nil {
+	if os.IsNotExist(err) {
 		return errors.New("failed to open AOF file")
 	}
 	defer file.Close()
