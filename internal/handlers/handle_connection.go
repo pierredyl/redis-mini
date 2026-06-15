@@ -43,8 +43,15 @@ func HandleConnection(conn net.Conn, data *data.Store) (err error) {
 			conn.Write([]byte("+OK\r\n"))
 
 		case "get":
-			value := HandleGet(args, data)
-			fmt.Println("Got:", value)
+			value, ok := HandleGet(args, data)
+			// Get was not successful
+			if !ok {
+				conn.Write([]byte("$-1\r\n"))
+			} else {
+				// Get was successful. Write back to the CLI
+				value_string := value.(string)
+				conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(value_string), value_string)))
+			}
 
 		case "ping":
 			conn.Write([]byte("+PONG\r\n"))
