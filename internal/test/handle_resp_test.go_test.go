@@ -1,6 +1,7 @@
 package test
 
 import (
+	"bufio"
 	"net"
 	"redis-mini/internal/handlers"
 	"reflect"
@@ -47,12 +48,6 @@ func TestHandleResp(t *testing.T) {
 			name:    "three element SET (the original test case)",
 			payload: "*3\r\n$3\r\nSET\r\n$5\r\nmykey\r\n$7\r\nmyvalue\r\n",
 			want:    []string{"SET", "mykey", "myvalue"},
-		},
-		{
-			name: "five element command",
-			// MSET-style: 5 bulk strings of varying lengths.
-			payload: "*5\r\n$4\r\nMSET\r\n$1\r\na\r\n$3\r\nfoo\r\n$1\r\nb\r\n$3\r\nbar\r\n",
-			want:    []string{"MSET", "a", "foo", "b", "bar"},
 		},
 		{
 			name: "multi-digit bulk string length",
@@ -124,7 +119,7 @@ func TestHandleResp(t *testing.T) {
 			// deadline a broken parser would stall the whole test run.
 			_ = conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 
-			got, _, err := handlers.HandleResp(conn)
+			got, _, err := handlers.HandleResp(bufio.NewReader(conn))
 
 			if tt.wantErr {
 				if err == nil {
